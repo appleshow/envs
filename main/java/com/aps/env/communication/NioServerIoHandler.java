@@ -1,0 +1,102 @@
+package com.aps.env.communication;
+
+import com.aps.env.comm.DateUtil;
+import com.aps.env.entity.Message;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.mina.api.IdleStatus;
+import org.apache.mina.api.IoHandler;
+import org.apache.mina.api.IoService;
+import org.apache.mina.api.IoSession;
+
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.util.Date;
+
+/**
+ * 
+ * @ClassName: NioServerIoHandler
+ * @Description:TODO
+ * @author: AppleShow
+ * @date: 2016年10月28日 下午10:10:28
+ * 
+ * @since 1.0.0
+ */
+public class NioServerIoHandler implements IoHandler {
+	private static final Logger LOG = LogManager.getLogger(NioServerIoHandler.class);
+
+	/**
+	 * 
+	 * <p>
+	 * Title: exceptionCaught
+	 * </p>
+	 * <p>
+	 * Description:
+	 * </p>
+	 * 
+	 * @param paramIoSession
+	 * @param paramException
+	 * @see org.apache.mina.api.IoHandler#exceptionCaught(org.apache.mina.api.IoSession,
+	 *      Exception)
+	 */
+	@Override
+	public void exceptionCaught(IoSession paramIoSession, Exception paramException) {
+		LOG.error("Unexpected exception, we close the session : ", paramException);
+		paramIoSession.close(true);
+	}
+
+	@Override
+	public void messageReceived(IoSession paramIoSession, Object paramObject) {
+		if (paramObject instanceof ByteBuffer) {
+			Charset charset = Charset.forName("utf-8");
+			CharsetDecoder charsetDecoder = charset.newDecoder();
+			try {
+				CharBuffer charBuffer = charsetDecoder.decode((ByteBuffer) paramObject);
+				Message message = new Message();
+				message.setMessageBody(charBuffer.toString());
+				message.setReceiveDate(DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1));
+				message.setFromHost("Host: " + paramIoSession.getRemoteAddress());
+				message.increaseTryTimes();
+
+				Cache.getCache().offer(message);
+				LOG.debug("Received " + message.getFromHost() + " -> " + charBuffer.toString());
+			} catch (CharacterCodingException e) {
+				LOG.error(e);
+			}
+		}
+	}
+
+	@Override
+	public void messageSent(IoSession paramIoSession, Object paramObject) {
+
+	}
+
+	@Override
+	public void serviceActivated(IoService paramIoService) {
+		LOG.info("Server is active.");
+	}
+
+	@Override
+	public void serviceInactivated(IoService paramIoService) {
+		LOG.info("Server is inactive.");
+	}
+
+	@Override
+	public void sessionClosed(IoSession paramIoSession) {
+		LOG.info("Session has been closed: " + paramIoSession);
+	}
+
+	@Override
+	public void sessionIdle(IoSession paramIoSession, IdleStatus paramIdleStatus) {
+
+	}
+
+	@Override
+	public void sessionOpened(IoSession paramIoSession) {
+		LOG.info("New session opened: " + paramIoSession);
+	}
+
+}
