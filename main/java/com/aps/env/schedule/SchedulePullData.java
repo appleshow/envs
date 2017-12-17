@@ -3,7 +3,7 @@ package com.aps.env.schedule;
 import com.aps.env.communication.Cache;
 import com.aps.env.communication.CacheOperation;
 import com.aps.env.entity.Message;
-import com.aps.env.service.DealMessage;
+import com.aps.env.processing.ProcessMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,8 +26,8 @@ import java.util.Collection;
  */
 @Component
 public class SchedulePullData {
-    @Resource(name = "dealMessage212")
-    private DealMessage dealMessage;
+    @Resource(name = "processMessage212")
+    private ProcessMessage processMessage;
     private static final Logger LOG = LogManager.getLogger(SchedulePullData.class);
 
     /**
@@ -35,7 +35,6 @@ public class SchedulePullData {
      */
     @Scheduled(cron = "30 * * * * ?")
     public void pullData() {
-        LOG.info("Loading data from cache...");
         final Collection<Message> cacheData = new ArrayList<>();
         final CacheOperation cacheOperation = new CacheOperation();
 
@@ -44,7 +43,7 @@ public class SchedulePullData {
             cacheData.stream().forEach(message -> {
                 try {
                     message.increaseTryTimes();
-                    dealMessage.saveMessage(message);
+                    processMessage.saveMessage(message);
                     cacheOperation.operationSuccess();
                 } catch (Exception e) {
                     cacheOperation.operationFailed();
@@ -57,7 +56,11 @@ public class SchedulePullData {
                 }
             });
         }
-        LOG.info(String.format("Loaded data from cache. Total: %d; Success: %d; Failed: %d.", cacheOperation.getTotal(), cacheOperation.getSuccess(),
-                cacheOperation.getFailed()));
+        if (cacheOperation.getFailed() > 0) {
+            LOG.info(String.format("Loaded data from cache. Total: %d; Success: %d; Failed: %d.", cacheOperation.getTotal(), cacheOperation.getSuccess(),
+                    cacheOperation.getFailed()));
+        } else {
+            LOG.info("Loaded data from cache successfully!");
+        }
     }
 }

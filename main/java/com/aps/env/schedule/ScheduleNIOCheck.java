@@ -31,7 +31,6 @@ public class ScheduleNIOCheck {
      */
     @Scheduled(cron = "0 0/3 * * * ?")
     public void nioStatus() {
-        LOG.info("Trying to check server status...");
         NioClient nioClient = new NioClient(Integer.parseInt(environment.getProperty("nioTcpPort")));
         if (!nioClient.tryToConnectServer()) {
             LOG.info("Try to connect server failed! Restart server ...");
@@ -44,7 +43,7 @@ public class ScheduleNIOCheck {
             NioServer.start(Integer.parseInt(environment.getProperty("nioTcpPort")));
             LOG.info("Server has been restated!");
         } else {
-            LOG.info("Server's status check successed!");
+            LOG.info("Server's status checked successfully!");
         }
     }
 }

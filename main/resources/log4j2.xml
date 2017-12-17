@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration status="off">
 	<properties>
-		<property name="LOG_HOME">c:/logs</property>
+		<property name="LOG_HOME">c:/ServerLogs</property>
 		<property name="LOG_LEVEL">debug</property>
 		<property name="PATTENR">## 【%-5level】 %d{yyyy-MM-dd HH:mm:ss} %C.%M(L:%L)%n>>%msg%n</property>
 	</properties>
@@ -29,7 +29,7 @@
 			<PatternLayout pattern="${PATTENR}"/>
 			<SizeBasedTriggeringPolicy size="2 MB"/>
 		</RollingFile>
-		<RollingFile name="dealMessage212" fileName="${LOG_HOME}/dealMessage212/dealMessage212.log" filePattern="${LOG_HOME}/dealMessage212/$${date:yyyy-MM}/dealMessage212-%d{MM-dd-yyyy}-%i.log.gz">
+		<RollingFile name="processMessage212" fileName="${LOG_HOME}/processMessage212/processMessage212.log" filePattern="${LOG_HOME}/processMessage212/$${date:yyyy-MM}/processMessage212-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
 			<SizeBasedTriggeringPolicy size="2 MB"/>
 		</RollingFile>
@@ -57,8 +57,8 @@
 		<logger name="com.aps.env.schedule" level="${LOG_LEVEL}" additivity="true">
 			<appender-ref ref="schedule"/>
 		</logger>
-		<logger name="com.aps.env.service.DealMessage212" level="${LOG_LEVEL}" additivity="true">
-			<appender-ref ref="dealMessage212"/>
+		<logger name="com.aps.env.processing.ProcessMessage212" level="${LOG_LEVEL}" additivity="true">
+			<appender-ref ref="processMessage212"/>
 		</logger>
 		<logger name="com.aps.env.test" level="trace" additivity="true">
 			<appender-ref ref="test"/>

@@ -3,7 +3,7 @@ package com.aps.env.communication;
 /**
  * 消息处理 - 编码、解码
  * 
- * @ClassName: DealMessage
+ * @ClassName: ProcessMessage
  * @Description:TODO
  * @author: AppleShow
  * @date: 2016年10月31日 下午10:27:56

@@ -1,13 +1,14 @@
-package com.aps.env.service;
+package com.aps.env.processing;
 
 import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.DateUtil;
 import com.aps.env.comm.JsonUtil;
-import com.aps.env.communication.Cache;
-import com.aps.env.dao.HbDataLatestMapper;
 import com.aps.env.dao.HbDataModeMapper;
 import com.aps.env.dao.HbDataRecordMapper;
-import com.aps.env.entity.*;
+import com.aps.env.entity.HbDataMode;
+import com.aps.env.entity.HbDataRecord;
+import com.aps.env.entity.KeyValue;
+import com.aps.env.entity.Message;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,12 +29,12 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @Service
-public class DealMessage212 implements DealMessage {
+public class ProcessMessage212 implements ProcessMessage {
     @Resource
     private HbDataRecordMapper hbDataRecordMapper;
     @Resource
     private HbDataModeMapper hbDataModeMapper;
-    private static final Logger LOG = LogManager.getLogger(DealMessage212.class);
+    private static final Logger LOG = LogManager.getLogger(ProcessMessage212.class);
 
 
     /**
@@ -50,18 +51,12 @@ public class DealMessage212 implements DealMessage {
      */
     private void insertMessage(Message message) {
         final HbDataMode hbDataMode = new HbDataMode();
-        final HbDataRecord hbDataRecord = new HbDataRecord();
         Date nowDate = new Date();
         String recordId = UUID.randomUUID().toString();
         String nodeData = message.getMessageBodyTailor();
+        String checkMessageError = null;
         int nodeId;
 
-        hbDataRecord.setRecordGuid(recordId);
-        hbDataRecord.setRecordData(nodeData);
-        hbDataRecord.setPrflag(0);
-        hbDataRecord.setProperty0(message.getFromHost());
-        hbDataRecord.setItime(nowDate);
-        hbDataRecord.setUtime(nowDate);
         hbDataMode.setDataGuid(recordId);
         hbDataMode.setProperty0(message.getFromHost());
         if (nodeData.length() > 2 && nodeData.startsWith("##") && nodeData.indexOf("&&") > 0 && nodeData.indexOf("DataTime=") > 0) {
@@ -96,7 +91,6 @@ public class DealMessage212 implements DealMessage {
                         }
                     }
                     if (jsonPar.size() > 0) {
-                        hbDataRecord.setPrflag(1);
                         switch (hbDataMode.getDataType()) {
                             case "2011":// 实时数据
                                 hbDataMode.setNodeData(jsonPar.toString().replace(CommUtil.HB_DATA_RTD212, ""));
@@ -116,22 +110,30 @@ public class DealMessage212 implements DealMessage {
                         hbDataMode.setItime(nowDate);
                         hbDataMode.setUtime(nowDate);
                     } else {
-                        hbDataRecord.setPrexp("Can not find item data!");
+                        checkMessageError = "Can not find item data!";
                     }
                 } else {
-                    hbDataRecord.setPrexp("Can not find MN: [" + hbDataMode.getNodeMn() + "]!");
+                    checkMessageError = "Can not find MN: [" + hbDataMode.getNodeMn() + "]!";
                 }
             } else {
-                hbDataRecord.setPrexp("Can not format data using DealMessage212,can not find key word [;]!");
+                checkMessageError = "Can not format data using DealMessage212,can not find key word [;]!";
             }
         } else {
-            hbDataRecord.setPrexp("Can not format data using DealMessage212!");
+            checkMessageError = "Can not format data using DealMessage212!";
         }
 
-        if (hbDataRecord.getPrflag() == 1) {
+        if (null == checkMessageError) {
             hbDataModeMapper.insertSelectiveByNode(hbDataMode);
-            LOG.debug("Deal message successfully from " + message.getFromHost());
+            LOG.debug("Processed message successfully from " + message.getFromHost());
         } else {
+            HbDataRecord hbDataRecord = new HbDataRecord();
+
+            hbDataRecord.setRecordGuid(recordId);
+            hbDataRecord.setRecordData(nodeData);
+            hbDataRecord.setPrexp(checkMessageError);
+            hbDataRecord.setProperty0(message.getFromHost());
+            hbDataRecord.setItime(nowDate);
+            hbDataRecord.setUtime(nowDate);
             hbDataRecordMapper.insertSelective(hbDataRecord);
             LOG.info("Analysis message failed from " + message.getFromHost());
         }
