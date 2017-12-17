@@ -4,12 +4,14 @@ import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.DateUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.mina.api.IoSession;
 import org.apache.mina.transport.nio.NioTcpServer;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -76,6 +78,17 @@ public class NioServer {
         }
     }
 
+    public static Map<Long, IoSession> getManagedSessions() {
+        return NIOTCPSERVER.getManagedSessions();
+    }
+
+    /**
+     * @return
+     */
+    public static NioTcpServer getNioTcpServer() {
+        return NIOTCPSERVER;
+    }
+
     /**
      * @return String
      * @Title: getServerStartTime
@@ -84,7 +97,7 @@ public class NioServer {
      * @since 1.0.0
      */
     public static String getServerStartTime() {
-        if (NIOTCPSERVER.isActive()) {
+        if (!NIOTCPSERVER.isDisposed()) {
             return serverStartTime;
         } else {
             return "----";
