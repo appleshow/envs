@@ -67,6 +67,7 @@ public class ProcessMessage212 implements ProcessMessage {
                 });
                 if (CommUtil.getHbNodeCache().containsKey(hbDataMode.getNodeMn())) {
                     nodeId = CommUtil.getHbNodeCache().get(hbDataMode.getNodeMn());
+                    hbDataMode.setNodeMn(String.valueOf(nodeId));
 
                     Arrays.asList(dataList.get(0)).stream().filter(item -> item.startsWith("CN=")).findFirst().ifPresent(item -> {
                         format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setDataType(keyValue.getValue()));

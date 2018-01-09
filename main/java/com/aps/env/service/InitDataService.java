@@ -13,4 +13,5 @@ package com.aps.env.service;
  */
 public interface InitDataService {
     void initHbNode();
+    void delHbDataLatest();
 }

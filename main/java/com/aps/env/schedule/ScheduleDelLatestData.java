@@ -10,27 +10,27 @@ import javax.annotation.Resource;
 
 /**
  * <dl>
- * <dt>com.aps.env.schedule.SchedulePullData</dt>
+ * <dt>com.aps.env.schedule.ScheduleDelLatestData</dt>
  * <dd>Description:</dd>
  * <dd>Copyright:  Copyright (C) 2017</dd>
  * <dd>Company:    AppleShow Technology </dd>
- * <dd>CreateDate: 2017/12/14</dd>
+ * <dd>CreateDate: 2018/1/9</dd>
  * </dl>
  *
  * @author appleshow
  */
 @Component
-public class ScheduleCacheNode {
+public class ScheduleDelLatestData {
     @Resource
     private InitDataService initDataService;
-    private static final Logger LOG = LogManager.getLogger(ScheduleCacheNode.class);
+    private static final Logger LOG = LogManager.getLogger(ScheduleDelLatestData.class);
 
     /**
-     * 缓存站点信息
+     * 删除最近数据
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
-    public void cacheNode() {
-        initDataService.initHbNode();
-        LOG.info("Cached Nodes Successfully!");
+    @Scheduled(cron = "0 0/30 * * * ?")
+    public void delHbDataLatest() {
+        initDataService.delHbDataLatest();
+        LOG.info("Delete Latest Data Successfully!");
     }
 }

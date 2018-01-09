@@ -1,13 +1,16 @@
 package com.aps.env.service;
 
 import com.aps.env.comm.CommUtil;
+import com.aps.env.dao.HbDataLatestMapper;
 import com.aps.env.dao.HbNodeMapper;
+import com.aps.env.entity.HbDataLatestExample;
 import com.aps.env.entity.HbNodeExample;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 /**
  * <dl>
@@ -24,6 +27,8 @@ import javax.annotation.Resource;
 public class InitDataServiceImpl implements InitDataService {
     @Resource
     private HbNodeMapper hbNodeMapper;
+    @Resource
+    private HbDataLatestMapper hbDataLatestMapper;
     private static final Logger LOG = LogManager.getLogger(InitDataServiceImpl.class);
 
     @Override
@@ -32,5 +37,15 @@ public class InitDataServiceImpl implements InitDataService {
         hbNodeExample.createCriteria().andDeleteFlagEqualTo(0);
         hbNodeMapper.selectByExample(hbNodeExample).stream().forEach(node -> CommUtil.putHbNode(node));
         LOG.info("Completing initializes HBNODE information!");
+    }
+
+    @Override
+    public void delHbDataLatest() {
+        Date nowDate = new Date();
+        int hours = 1;
+        HbDataLatestExample hbDataLatestExample = new HbDataLatestExample();
+
+        hbDataLatestExample.createCriteria().andDataTimeLessThan(new Date(nowDate.getTime() - 1000 * 60 * 60 * hours));
+        hbDataLatestMapper.deleteByExample(hbDataLatestExample);
     }
 }

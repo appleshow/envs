@@ -593,6 +593,26 @@
     </trim>;
 
     <if test="dataType != null and dataType =='2011'" >
+      INSERT INTO hb_data_latest(
+      DATA_GUID,
+      NODE_ID,
+      DATA_TYPE,
+      DATA_TIME,
+      NODE_DATA,
+      PROPERTY0,
+      ITIME,
+      UTIME
+      )VALUES(
+      #{dataGuid,jdbcType=VARCHAR},
+      #{nodeMn,jdbcType=VARCHAR},
+      #{dataType,jdbcType=VARCHAR},
+      #{dataTime,jdbcType=TIMESTAMP},
+      #{nodeData,jdbcType=VARCHAR},
+      #{property0,jdbcType=VARCHAR},
+      #{itime,jdbcType=TIMESTAMP},
+      #{utime,jdbcType=TIMESTAMP}
+      )
+      <!--
       UPDATE hb_data_latest SET
       DATA_TYPE = #{dataType,jdbcType=VARCHAR},
       DATA_TIME = #{dataTime,jdbcType=TIMESTAMP},
@@ -606,6 +626,7 @@
                            AND DATA_TIME = (SELECT MIN(DATA_TIME)
                                             FROM hb_data_latest
                                             WHERE NODE_ID = #{prflag,jdbcType=INTEGER})) a);
+    -->
     </if>
   </insert>
   <select id="countByExample" parameterType="com.aps.env.entity.HbDataModeExample" resultType="java.lang.Integer" >
