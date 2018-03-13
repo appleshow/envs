@@ -592,7 +592,7 @@
       </if>
     </trim>;
 
-    <if test="dataType != null and dataType =='2011'" >
+    <if test="dataType != null and dataType == '2011'" >
       INSERT INTO hb_data_latest(
       DATA_GUID,
       NODE_ID,
@@ -611,7 +611,7 @@
       #{property0,jdbcType=VARCHAR},
       #{itime,jdbcType=TIMESTAMP},
       #{utime,jdbcType=TIMESTAMP}
-      )
+      );
       <!--
       UPDATE hb_data_latest SET
       DATA_TYPE = #{dataType,jdbcType=VARCHAR},
