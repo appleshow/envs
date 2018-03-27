@@ -183,7 +183,7 @@ public class CommUtil {
     }
 
     /**
-     * @return HashMap<String,Integer>
+     * @return HashMap<String , Integer>
      * @Title: getHbNodeCache
      * @Description: TODO
      * @throws:
@@ -200,6 +200,14 @@ public class CommUtil {
         if (!hbNodeMn.containsKey(hbNode.getNodeMn())) {
             hbNodeMn.put(hbNode.getNodeMn(), hbNode.getNodeId());
         }
+    }
+
+    /**
+     * @param address
+     * @return
+     */
+    public static String formatHost(String address) {
+        return String.format("Host: %s", address);
     }
 
     /**

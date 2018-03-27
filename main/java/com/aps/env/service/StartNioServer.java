@@ -1,6 +1,6 @@
 package com.aps.env.service;
 
-import com.aps.env.communication.NioServer;
+import com.aps.env.communication.NettyServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
@@ -30,6 +30,6 @@ public class StartNioServer implements CommandLineRunner {
     public void run(String... strings) throws Exception {
         initDataService.initHbNode();
 
-        NioServer.start(Integer.parseInt(environment.getProperty("nioTcpPort")));
+        NettyServer.start(Integer.parseInt(environment.getProperty("nioTcpPort")));
     }
 }

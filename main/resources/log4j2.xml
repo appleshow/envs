@@ -3,7 +3,7 @@
 	<properties>
 		<property name="LOG_HOME">/opt/env/ServerLogs</property>
 		<property name="LOG_LEVEL">debug</property>
-		<property name="PATTENR">## 【%-5level】 %d{yyyy-MM-dd HH:mm:ss} %C.%M(L:%L)%n>>%msg%n</property>
+		<property name="PATTENR">** [%-5level] ** %d{yyyy-MM-dd HH:mm:ss} %C.%M(L:%L)%n>>%msg%n</property>
 	</properties>
 	<appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -18,6 +18,10 @@
 			<SizeBasedTriggeringPolicy size="2 MB"/>
 		</RollingFile>
 		<RollingFile name="service" fileName="${LOG_HOME}/service/service.log" filePattern="${LOG_HOME}/service/$${date:yyyy-MM}/service-%d{MM-dd-yyyy}-%i.log.gz">
+			<PatternLayout pattern="${PATTENR}"/>
+			<SizeBasedTriggeringPolicy size="2 MB"/>
+		</RollingFile>
+		<RollingFile name="controller" fileName="${LOG_HOME}/controller/controller.log" filePattern="${LOG_HOME}/controller/$${date:yyyy-MM}/controller-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
 			<SizeBasedTriggeringPolicy size="2 MB"/>
 		</RollingFile>
@@ -50,6 +54,9 @@
 		</logger>
 		<logger name="com.aps.env.service" level="${LOG_LEVEL}" additivity="true">
 			<appender-ref ref="service"/>
+		</logger>
+		<logger name="com.aps.env.controller" level="${LOG_LEVEL}" additivity="true">
+			<appender-ref ref="controller"/>
 		</logger>
 		<logger name="com.aps.env.communication" level="${LOG_LEVEL}" additivity="true">
 			<appender-ref ref="communication"/>

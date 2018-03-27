@@ -38,8 +38,8 @@ public class SchedulePullData {
         final Collection<Message> cacheData = new ArrayList<>();
         final CacheOperation cacheOperation = new CacheOperation();
 
-        if (!Cache.getCache().isEmpty()) {
-            Cache.getCache().drainTo(cacheData);
+        if (!Cache.isEmpty()) {
+            Cache.drainTo(cacheData);
             cacheData.stream().forEach(message -> {
                 try {
                     message.increaseTryTimes();
@@ -50,7 +50,7 @@ public class SchedulePullData {
                     if (message.getTryTimes() >= 5) {
                         LOG.error("Deal the message failed 5 times, remove it. Message: " + message.getMessageBodyTailor());
                     } else {
-                        Cache.getCache().offer(message);
+                        Cache.offer(message);
                     }
                     LOG.error(e);
                 }
@@ -58,7 +58,7 @@ public class SchedulePullData {
         }
         if (cacheOperation.getFailed() > 0) {
             LOG.info(String.format("Loaded data from cache. Total: %d; Success: %d; Failed: %d.", cacheOperation.getTotal(), cacheOperation.getSuccess(),
-                    cacheOperation.getFailed()));
+                                   cacheOperation.getFailed()));
         } else {
             LOG.info("Loaded data from cache successfully!");
         }
