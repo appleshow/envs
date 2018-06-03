@@ -2,6 +2,10 @@ package com.aps.env.schedule;
 
 import com.aps.env.communication.Cache;
 import com.aps.env.communication.CacheOperation;
+import com.aps.env.communication.NettyServer;
+import com.aps.env.dao.HbNodeMapper;
+import com.aps.env.entity.HbNode;
+import com.aps.env.entity.HbNodeExample;
 import com.aps.env.entity.Message;
 import com.aps.env.processing.ProcessMessage;
 import org.apache.logging.log4j.LogManager;
@@ -12,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * <dl>
@@ -26,8 +31,11 @@ import java.util.Collection;
  */
 @Component
 public class SchedulePullData {
+    @Resource
+    private HbNodeMapper hbNodeMapper;
     @Resource(name = "processMessage212")
     private ProcessMessage processMessage;
+
     private static final Logger LOG = LogManager.getLogger(SchedulePullData.class);
 
     /**
@@ -38,6 +46,18 @@ public class SchedulePullData {
         final Collection<Message> cacheData = new ArrayList<>();
         final CacheOperation cacheOperation = new CacheOperation();
 
+        if (!NettyServer.getOfflineClient().isEmpty()) {
+            NettyServer.getOfflineClient().stream().forEach(k -> {
+                HbNode hbNode = new HbNode();
+                hbNode.setNodeId(k);
+                hbNode.setPrflag(0);
+                hbNode.setUtime(new Date());
+
+                hbNodeMapper.updateByPrimaryKeySelective(hbNode);
+            });
+
+            NettyServer.clearOfflineClient();
+        }
         if (!Cache.isEmpty()) {
             Cache.drainTo(cacheData);
             cacheData.stream().forEach(message -> {

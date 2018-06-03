@@ -1,6 +1,8 @@
 package com.aps.env.communication;
 
+import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.DateUtil;
+import com.aps.env.comm.StringUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -11,9 +13,7 @@ import io.netty.handler.codec.string.StringDecoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * <dl>
@@ -39,10 +39,14 @@ public class NettyServer {
     private static String restartFrom = null;
     private static final Vector<String> SERVER_START_TIME;
     private static final Vector<String> MANAGED_CHANNEL_ADDRESS;
+    private static final Vector<Integer> OFFLINE_CLIENT;
+    private static final Map<String, String> MANAGED_NODE;
 
     static {
         SERVER_START_TIME = new Vector<>();
         MANAGED_CHANNEL_ADDRESS = new Vector<>();
+        OFFLINE_CLIENT = new Vector<>();
+        MANAGED_NODE = new HashMap<>();
     }
 
     private NettyServer() {
@@ -122,16 +126,23 @@ public class NettyServer {
 
     /**
      * @param address
+     * @param channelId
      */
-    public static void inputChannelAddress(String address) {
-        MANAGED_CHANNEL_ADDRESS.add(address);
+    public static void inputChannelAddress(String address, String channelId) {
+        MANAGED_CHANNEL_ADDRESS.add(CommUtil.formatHost(address, channelId));
     }
 
     /**
      * @param address
+     * @param channelId
      */
-    public static void removeChannelAddress(String address) {
-        MANAGED_CHANNEL_ADDRESS.remove(address);
+    public static void removeChannelAddress(String address, String channelId) {
+        MANAGED_CHANNEL_ADDRESS.remove(CommUtil.formatHost(address, channelId));
+        MANAGED_NODE.forEach((k, v) -> {
+            if (channelId.equals(v) && CommUtil.getHbNodeCache().containsKey(k)) {
+                OFFLINE_CLIENT.add(CommUtil.getHbNodeCache().get(k));
+            }
+        });
     }
 
     /**
@@ -139,5 +150,39 @@ public class NettyServer {
      */
     public static List<String> getManagedChannelAddress() {
         return MANAGED_CHANNEL_ADDRESS;
+    }
+
+    /**
+     * @param nodeId
+     * @param channelId
+     */
+    public static void addManagedNode(String nodeId, String channelId) {
+        MANAGED_NODE.put(nodeId, channelId);
+    }
+
+    /**
+     * @return
+     */
+    public static Map<String, String> getManagedNode() {
+        return MANAGED_NODE;
+    }
+
+    /**
+     * @return
+     */
+    public static List<Integer> getOfflineClient() {
+        return OFFLINE_CLIENT;
+    }
+
+    public static void clearOfflineClient() {
+        OFFLINE_CLIENT.stream().forEach(
+                k -> CommUtil.getHbNodeCache().forEach(
+                        (mn, nodeId) -> {
+                            if (k == nodeId) {
+                                MANAGED_NODE.remove(mn);
+                            }
+                        }));
+
+        OFFLINE_CLIENT.clear();
     }
 }

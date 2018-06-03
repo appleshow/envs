@@ -33,8 +33,8 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRegistered(ChannelHandlerContext channelHandlerContext) throws Exception {
         String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
 
-        NettyServer.inputChannelAddress(CommUtil.formatHost(remoteAddress));
-        LOG.info(String.format("Session has been opened:%s", remoteAddress));
+        NettyServer.inputChannelAddress(remoteAddress, channelHandlerContext.channel().id().asLongText());
+        LOG.info(String.format("Session has been opened: %s", CommUtil.formatHost(remoteAddress, null)));
     }
 
     /**
@@ -46,8 +46,8 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelUnregistered(ChannelHandlerContext channelHandlerContext) throws Exception {
         String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
 
-        NettyServer.removeChannelAddress(CommUtil.formatHost(remoteAddress));
-        LOG.info(String.format("Session has been closed:", remoteAddress));
+        NettyServer.removeChannelAddress(remoteAddress, channelHandlerContext.channel().id().asLongText());
+        LOG.info(String.format("Session has been closed: %s", CommUtil.formatHost(remoteAddress, null)));
     }
 
     /**
@@ -62,8 +62,9 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         Message message = new Message();
         message.setMessageBody(String.valueOf(msg));
         message.setReceiveDate(DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1));
-        message.setFromHost(CommUtil.formatHost(remoteAddress));
+        message.setFromHost(CommUtil.formatHost(remoteAddress, null));
         message.increaseTryTimes();
+        message.setChannelId(channelHandlerContext.channel().id().asLongText());
 
         Cache.offer(message);
         LOG.debug("Received [" + message.getFromHost() + "] -> " + msg);

@@ -3,12 +3,12 @@ package com.aps.env.processing;
 import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.DateUtil;
 import com.aps.env.comm.JsonUtil;
+import com.aps.env.comm.StringUtil;
+import com.aps.env.communication.NettyServer;
 import com.aps.env.dao.HbDataModeMapper;
 import com.aps.env.dao.HbDataRecordMapper;
-import com.aps.env.entity.HbDataMode;
-import com.aps.env.entity.HbDataRecord;
-import com.aps.env.entity.KeyValue;
-import com.aps.env.entity.Message;
+import com.aps.env.dao.HbNodeMapper;
+import com.aps.env.entity.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ProcessMessage212 implements ProcessMessage {
+    @Resource
+    private HbNodeMapper hbNodeMapper;
     @Resource
     private HbDataRecordMapper hbDataRecordMapper;
     @Resource
@@ -55,6 +57,7 @@ public class ProcessMessage212 implements ProcessMessage {
         String recordId = UUID.randomUUID().toString();
         String nodeData = message.getMessageBodyTailor();
         String checkMessageError = null;
+        String mn = null;
         int nodeId;
 
         hbDataMode.setDataGuid(recordId);
@@ -62,33 +65,38 @@ public class ProcessMessage212 implements ProcessMessage {
         if (nodeData.length() > 2 && nodeData.startsWith("##") && nodeData.indexOf("&&") > 0 && nodeData.indexOf("DataTime=") > 0) {
             List<String[]> dataList = Arrays.asList(nodeData.split("&&")).stream().map(item -> item.split(";")).collect(Collectors.toList());
             if (dataList.size() >= 2) {
-                Arrays.asList(dataList.get(0)).stream().filter(item -> item.startsWith("MN=")).findFirst().ifPresent(item -> {
-                    format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setNodeMn(keyValue.getValue()));
-                });
+                Arrays.asList(dataList.get(0)).stream().filter(
+                        item -> item.startsWith("MN=")).findFirst().ifPresent(
+                        item -> format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setNodeMn(keyValue.getValue())));
                 if (CommUtil.getHbNodeCache().containsKey(hbDataMode.getNodeMn())) {
+                    mn = hbDataMode.getNodeMn();
                     nodeId = CommUtil.getHbNodeCache().get(hbDataMode.getNodeMn());
+                    if (!NettyServer.getManagedNode().containsKey(mn)) {
+                        HbNode hbNode = new HbNode();
+                        hbNode.setNodeId(nodeId);
+                        hbNode.setPrflag(1);
+                        hbNode.setUtime(new Date());
+
+                        hbNodeMapper.updateByPrimaryKeySelective(hbNode);
+                    }
+                    NettyServer.addManagedNode(mn, message.getChannelId());
                     hbDataMode.setNodeMn(String.valueOf(nodeId));
 
-                    Arrays.asList(dataList.get(0)).stream().filter(item -> item.startsWith("CN=")).findFirst().ifPresent(item -> {
-                        format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setDataType(keyValue.getValue()));
-                    });
-                    Arrays.asList(dataList.get(1)).stream().filter(item -> item.startsWith("DataTime=")).findFirst().ifPresent(item -> {
-                        format2KeyValue(item)
-                                .ifPresent(keyValue -> hbDataMode.setDataTime(DateUtil.fromString(keyValue.getValue(), DateUtil.SIMPLE_DATE_FORMAT2)));
-                    });
+                    Arrays.asList(dataList.get(0)).stream().filter(
+                            item -> item.startsWith("CN=")).findFirst().ifPresent(
+                            item -> format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setDataType(keyValue.getValue())));
+                    Arrays.asList(dataList.get(1)).stream().filter(item -> item.startsWith("DataTime=")).findFirst().ifPresent(
+                            item -> format2KeyValue(item)
+                                    .ifPresent(
+                                            keyValue -> hbDataMode.setDataTime(DateUtil.fromString(keyValue.getValue(), DateUtil.SIMPLE_DATE_FORMAT2))));
                     final ObjectNode jsonPar = JsonUtil.getObjectNodeInstance();
                     for (String item : dataList.get(1)) {
                         if (item.indexOf(",") > 0) {
-                            Arrays.asList(item.split(",")).stream().forEach(par -> {
-                                format2KeyValue(par).ifPresent(keyValue -> {
-                                    jsonPar.put(keyValue.getKey(), keyValue.getValue());
-                                });
-                            });
+                            Arrays.asList(item.split(",")).stream().forEach(
+                                    par -> format2KeyValue(par).ifPresent(
+                                            keyValue -> jsonPar.put(keyValue.getKey(), keyValue.getValue())));
                         } else if (!item.startsWith("DataTime=")) {
-                            format2KeyValue(item).ifPresent(keyValue -> {
-                                jsonPar.put(keyValue.getKey(), keyValue.getValue());
-                            });
-
+                            format2KeyValue(item).ifPresent(keyValue -> jsonPar.put(keyValue.getKey(), keyValue.getValue()));
                         }
                     }
                     if (jsonPar.size() > 0) {
@@ -114,7 +122,7 @@ public class ProcessMessage212 implements ProcessMessage {
                         checkMessageError = "Can not find item data!";
                     }
                 } else {
-                    checkMessageError = "Can not find MN: [" + hbDataMode.getNodeMn() + "]!";
+                    checkMessageError = "Can not find MN: [" + mn + "]!";
                 }
             } else {
                 checkMessageError = "Can not format data using DealMessage212,can not find key word [;]!";
@@ -125,7 +133,7 @@ public class ProcessMessage212 implements ProcessMessage {
 
         if (null == checkMessageError) {
             hbDataModeMapper.insertSelectiveByNode(hbDataMode);
-            LOG.debug("Processed message successfully from " + message.getFromHost());
+            LOG.debug(String.format("Processed message successfully from %s,%s", message.getFromHost(), mn));
         } else {
             HbDataRecord hbDataRecord = new HbDataRecord();
 
@@ -136,7 +144,7 @@ public class ProcessMessage212 implements ProcessMessage {
             hbDataRecord.setItime(nowDate);
             hbDataRecord.setUtime(nowDate);
             hbDataRecordMapper.insertSelective(hbDataRecord);
-            LOG.info("Analysis message failed from " + message.getFromHost());
+            LOG.info(String.format("Analysis message failed from %s,%s", message.getFromHost(), mn));
         }
     }
 

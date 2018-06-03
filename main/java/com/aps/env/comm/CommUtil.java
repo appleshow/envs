@@ -46,8 +46,6 @@ public class CommUtil {
     public final static Integer AVAILABLE = 0;
     public final static Integer DELETE = 1;
 
-    public final static String SYS_PATH = CommUtil.class.getResource("/").getPath();
-    private final static WebApplicationContext webApplicationContext = ContextLoader.getCurrentWebApplicationContext();
     private final static HashMap<String, Integer> hbNodeMn = new HashMap<>();
 
     /**
@@ -183,7 +181,7 @@ public class CommUtil {
     }
 
     /**
-     * @return HashMap<String , Integer>
+     * @return HashMap<String               ,               Integer>
      * @Title: getHbNodeCache
      * @Description: TODO
      * @throws:
@@ -206,8 +204,8 @@ public class CommUtil {
      * @param address
      * @return
      */
-    public static String formatHost(String address) {
-        return String.format("Host: %s", address);
+    public static String formatHost(String address, String channelId) {
+        return StringUtil.isNullOrEmpty(channelId) ? String.format("Host: %s", address) : String.format("Host: %s,%s", address, channelId);
     }
 
     /**

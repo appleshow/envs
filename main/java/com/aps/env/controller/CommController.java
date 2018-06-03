@@ -1,5 +1,6 @@
 package com.aps.env.controller;
 
+import com.aps.env.comm.StringUtil;
 import com.aps.env.communication.Cache;
 import com.aps.env.communication.NettyServer;
 import org.apache.logging.log4j.LogManager;
@@ -12,8 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * <dl>
@@ -44,7 +44,27 @@ public class CommController extends ExceptionController {
         LOG.info(String.format("Call getOnlineClient from: %s", httpServletRequest.getRemoteAddr()));
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
 
-        return NettyServer.getManagedChannelAddress();
+        final List<String> oneLineClient = NettyServer.getManagedChannelAddress();
+        final Map<String, String> mapClient = new HashMap<>();
+        final List<String> returnClient = new ArrayList<>();
+
+        oneLineClient.stream().forEach(n -> {
+            final String[] client = n.split(",");
+
+            mapClient.put(client[0], "");
+            if (client.length > 1) {
+                NettyServer.getManagedNode().forEach((k, v) -> {
+                    if (client[1].equals(v)) {
+                        mapClient.put(client[0], mapClient.get(client[0]) + String.format(",%s", k));
+                    }
+                });
+            }
+        });
+
+        mapClient.forEach(
+                (k, v) -> returnClient.add(StringUtil.isNullOrEmpty(v) ? k : k + v));
+
+        return returnClient;
     }
 
     /**

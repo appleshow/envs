@@ -29,6 +29,7 @@ public class StartNioServer implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
         initDataService.initHbNode();
+        initDataService.initHbNodeStatus();
 
         NettyServer.start(Integer.parseInt(environment.getProperty("nioTcpPort")));
     }

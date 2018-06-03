@@ -4,6 +4,7 @@ import com.aps.env.comm.CommUtil;
 import com.aps.env.dao.HbDataLatestMapper;
 import com.aps.env.dao.HbNodeMapper;
 import com.aps.env.entity.HbDataLatestExample;
+import com.aps.env.entity.HbNode;
 import com.aps.env.entity.HbNodeExample;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +30,7 @@ public class InitDataServiceImpl implements InitDataService {
     private HbNodeMapper hbNodeMapper;
     @Resource
     private HbDataLatestMapper hbDataLatestMapper;
+
     private static final Logger LOG = LogManager.getLogger(InitDataServiceImpl.class);
 
     @Override
@@ -40,9 +42,20 @@ public class InitDataServiceImpl implements InitDataService {
     }
 
     @Override
+    public void initHbNodeStatus() {
+        HbNodeExample hbNodeExample = new HbNodeExample();
+        hbNodeExample.createCriteria().andNodeIdIsNotNull();
+        HbNode hbNode = new HbNode();
+        hbNode.setPrflag(0);
+        hbNode.setUtime(new Date());
+
+        hbNodeMapper.updateByExampleSelective(hbNode, hbNodeExample);
+    }
+
+    @Override
     public void delHbDataLatest() {
         Date nowDate = new Date();
-        int hours = 1;
+        int hours = 12;
         HbDataLatestExample hbDataLatestExample = new HbDataLatestExample();
 
         hbDataLatestExample.createCriteria().andDataTimeLessThan(new Date(nowDate.getTime() - 1000 * 60 * 60 * hours));
