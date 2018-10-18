@@ -8,6 +8,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.HttpSession;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -181,7 +182,7 @@ public class CommUtil {
     }
 
     /**
-     * @return HashMap<String               ,               Integer>
+     * @return HashMap<String , Integer>
      * @Title: getHbNodeCache
      * @Description: TODO
      * @throws:
@@ -205,7 +206,9 @@ public class CommUtil {
      * @return
      */
     public static String formatHost(String address, String channelId) {
-        return StringUtil.isNullOrEmpty(channelId) ? String.format("Host: %s", address) : String.format("Host: %s,%s", address, channelId);
+        String nowString = DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1);
+
+        return StringUtil.isNullOrEmpty(channelId) ? String.format("Host: %s,%s,[%s]", address, "", nowString) : String.format("Host: %s,%s,[%s]", address, channelId, nowString);
     }
 
     /**

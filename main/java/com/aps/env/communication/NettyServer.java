@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <dl>
@@ -37,16 +39,18 @@ public class NettyServer {
     private static boolean activity = false;
     private static int restartPort = -1;
     private static String restartFrom = null;
+    private static AtomicInteger connectNumber;
     private static final Vector<String> SERVER_START_TIME;
-    private static final Vector<String> MANAGED_CHANNEL_ADDRESS;
+    private static final ConcurrentHashMap<String, String> MANAGED_CONNECTIONS;
     private static final Vector<Integer> OFFLINE_CLIENT;
     private static final Map<String, String> MANAGED_NODE;
 
     static {
         SERVER_START_TIME = new Vector<>();
-        MANAGED_CHANNEL_ADDRESS = new Vector<>();
         OFFLINE_CLIENT = new Vector<>();
         MANAGED_NODE = new HashMap<>();
+        MANAGED_CONNECTIONS = new ConcurrentHashMap();
+        connectNumber = new AtomicInteger(0);
     }
 
     private NettyServer() {
@@ -56,7 +60,7 @@ public class NettyServer {
      * @param port
      */
     public static void start(int port) {
-        MANAGED_CHANNEL_ADDRESS.clear();
+        MANAGED_CONNECTIONS.clear();
         eventLoopGroupBoss = new NioEventLoopGroup();
         eventLoopGroupWorker = new NioEventLoopGroup();
         try {
@@ -125,11 +129,18 @@ public class NettyServer {
     }
 
     /**
+     * @return
+     */
+    public static AtomicInteger getConnectNumber() {
+        return connectNumber;
+    }
+
+    /**
      * @param address
      * @param channelId
      */
     public static void inputChannelAddress(String address, String channelId) {
-        MANAGED_CHANNEL_ADDRESS.add(CommUtil.formatHost(address, channelId));
+        MANAGED_CONNECTIONS.put(address, CommUtil.formatHost(address, channelId));
     }
 
     /**
@@ -137,7 +148,7 @@ public class NettyServer {
      * @param channelId
      */
     public static void removeChannelAddress(String address, String channelId) {
-        MANAGED_CHANNEL_ADDRESS.remove(CommUtil.formatHost(address, channelId));
+        MANAGED_CONNECTIONS.remove(address);
         MANAGED_NODE.forEach((k, v) -> {
             if (channelId.equals(v) && CommUtil.getHbNodeCache().containsKey(k)) {
                 OFFLINE_CLIENT.add(CommUtil.getHbNodeCache().get(k));
@@ -148,8 +159,8 @@ public class NettyServer {
     /**
      * @return
      */
-    public static List<String> getManagedChannelAddress() {
-        return MANAGED_CHANNEL_ADDRESS;
+    public static ConcurrentHashMap<String, String> getManagedConnections() {
+        return MANAGED_CONNECTIONS;
     }
 
     /**

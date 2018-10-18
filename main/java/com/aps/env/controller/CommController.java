@@ -44,27 +44,41 @@ public class CommController extends ExceptionController {
         LOG.info(String.format("Call getOnlineClient from: %s", httpServletRequest.getRemoteAddr()));
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
 
-        final List<String> oneLineClient = NettyServer.getManagedChannelAddress();
+        final Map<String, String> onlineClient = NettyServer.getManagedConnections();
         final Map<String, String> mapClient = new HashMap<>();
         final List<String> returnClient = new ArrayList<>();
 
-        oneLineClient.stream().forEach(n -> {
-            final String[] client = n.split(",");
+        onlineClient.forEach((k, v) -> {
+            final String[] client = v.split(",");
 
-            mapClient.put(client[0], "");
-            if (client.length > 1) {
-                NettyServer.getManagedNode().forEach((k, v) -> {
-                    if (client[1].equals(v)) {
-                        mapClient.put(client[0], mapClient.get(client[0]) + String.format(",%s", k));
-                    }
-                });
-            }
+            mapClient.put(k, v);
+            NettyServer.getManagedNode().forEach((kn, vn) -> {
+                if (client[1].equals(vn)) {
+                    mapClient.put(k, String.format("%s,[%s]", mapClient.get(k), kn));
+                }
+            });
         });
 
         mapClient.forEach(
-                (k, v) -> returnClient.add(StringUtil.isNullOrEmpty(v) ? k : k + v));
+                (k, v) -> returnClient.add(v));
 
         return returnClient;
+    }
+
+    /**
+     * @param httpServletRequest
+     * @param httpServletResponse
+     * @return
+     */
+    @RequestMapping(value = "getConnectionNumber", method = RequestMethod.GET)
+    public List<String> getConnectionNumber(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        final List<String> connectionNumber = new ArrayList<>();
+        LOG.info(String.format("Call getConnectionNumber from: %s", httpServletRequest.getRemoteAddr()));
+
+        connectionNumber.add(String.format("Connection Number: %d", NettyServer.getConnectNumber().get()));
+        httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
+
+        return connectionNumber;
     }
 
     /**

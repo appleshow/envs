@@ -31,8 +31,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRegistered(ChannelHandlerContext channelHandlerContext) throws Exception {
-        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        super.channelRegistered(channelHandlerContext);
 
+        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        NettyServer.getConnectNumber().incrementAndGet();
         NettyServer.inputChannelAddress(remoteAddress, channelHandlerContext.channel().id().asLongText());
         LOG.info(String.format("Session has been opened: %s", CommUtil.formatHost(remoteAddress, null)));
     }
@@ -44,8 +46,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelUnregistered(ChannelHandlerContext channelHandlerContext) throws Exception {
-        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        super.channelUnregistered(channelHandlerContext);
 
+        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        NettyServer.getConnectNumber().decrementAndGet();
         NettyServer.removeChannelAddress(remoteAddress, channelHandlerContext.channel().id().asLongText());
         LOG.info(String.format("Session has been closed: %s", CommUtil.formatHost(remoteAddress, null)));
     }
