@@ -1,8 +1,9 @@
 package com.aps.env.controller;
 
-import com.aps.env.comm.StringUtil;
+import com.aps.env.comm.CommUtil;
 import com.aps.env.communication.Cache;
 import com.aps.env.communication.NettyServer;
+import com.aps.env.entity.HbTypeItemNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,4 +148,35 @@ public class CommController extends ExceptionController {
         return NettyServer.getServerStartTime();
     }
 
+    /**
+     * @return
+     */
+    @RequestMapping(value = "getCachedHbNodeMN", method = RequestMethod.GET)
+    public Map<String, Integer> getCachedHbNodeMN() {
+        return CommUtil.getHbNodeCache();
+    }
+
+    /**
+     * @return
+     */
+    @RequestMapping(value = "getCachedHbNodeName", method = RequestMethod.GET)
+    public Map<Integer, String> getCachedHbNodeName() {
+        return CommUtil.getNodeNameCache();
+    }
+
+    /**
+     * @return
+     */
+    @RequestMapping(value = "getCachedHbNodeItemS", method = RequestMethod.GET)
+    public Map<Integer, String> getCachedHbNodeItemS() {
+        return CommUtil.getNodeTypeItemCacheS();
+    }
+
+    /**
+     * @return
+     */
+    @RequestMapping(value = "getCachedHbNodeItemO", method = RequestMethod.GET)
+    public Map<Integer, List<HbTypeItemNode>> getCachedHbNodeItemO() {
+        return CommUtil.getNodeTypeItemCacheO();
+    }
 }

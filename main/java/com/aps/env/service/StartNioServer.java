@@ -28,6 +28,9 @@ public class StartNioServer implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
+        System.setProperty("sun.net.client.defaultConnectTimeout", environment.getProperty("defaultConnectTimeout"));
+        System.setProperty("sun.net.client.defaultReadTimeout", environment.getProperty("defaultReadTimeout"));
+
         initDataService.initHbNode();
         initDataService.initHbNodeStatus();
 

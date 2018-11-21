@@ -42,26 +42,23 @@ public class DateUtil {
     }
 
     /**
-     *
+     * @throws @since 1.0.0
      * @Title: formatString
      * @Description: TODO
      * @param: @param
-     *             date
+     * date
      * @param: @return
      * @return: String
-     * @throws @since
-     *             1.0.0
      */
     public static String formatString(Date date, SimpleDateFormat simpleDateFormat) {
         return simpleDateFormat.format(date);
     }
 
     /**
-     *
-     * @Title: fromString
-     * @Description: TODO
      * @param dateStr
      * @return Date
+     * @Title: fromString
+     * @Description: TODO
      * @throws:
      * @since 1.0.0
      */

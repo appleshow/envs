@@ -2,15 +2,11 @@ package com.aps.env.comm;
 
 import com.aps.env.entity.ComOrgFormRights;
 import com.aps.env.entity.HbNode;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
+import com.aps.env.entity.HbTypeItemNode;
 
 import javax.servlet.http.HttpSession;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * <dl>
@@ -47,7 +43,10 @@ public class CommUtil {
     public final static Integer AVAILABLE = 0;
     public final static Integer DELETE = 1;
 
-    private final static HashMap<String, Integer> hbNodeMn = new HashMap<>();
+    private final static HashMap<String, Integer> HB_NODE_MN = new HashMap<>();
+    private final static HashMap<Integer, String> HB_NODE_NAME = new HashMap<>();
+    private final static HashMap<Integer, String> HB_NODE_ITEM_S = new HashMap<>();
+    private final static HashMap<Integer, List<HbTypeItemNode>> HB_NODE_ITEM_O = new HashMap<>();
 
     /**
      * @throws @since 1.0.0
@@ -182,23 +181,35 @@ public class CommUtil {
     }
 
     /**
-     * @return HashMap<String , Integer>
+     * @return
      * @Title: getHbNodeCache
      * @Description: TODO
      * @throws:
      * @since 1.0.0
      */
     public static HashMap<String, Integer> getHbNodeCache() {
-        return hbNodeMn;
+        return HB_NODE_MN;
     }
 
     /**
-     * @param hbNode
+     * @return
      */
-    public static void putHbNode(HbNode hbNode) {
-        if (!hbNodeMn.containsKey(hbNode.getNodeMn())) {
-            hbNodeMn.put(hbNode.getNodeMn(), hbNode.getNodeId());
-        }
+    public static HashMap<Integer, String> getNodeNameCache() {
+        return HB_NODE_NAME;
+    }
+
+    /**
+     * @return
+     */
+    public static HashMap<Integer, String> getNodeTypeItemCacheS() {
+        return HB_NODE_ITEM_S;
+    }
+
+    /**
+     * @return
+     */
+    public static HashMap<Integer, List<HbTypeItemNode>> getNodeTypeItemCacheO() {
+        return HB_NODE_ITEM_O;
     }
 
     /**

@@ -7,6 +7,7 @@ import com.aps.env.comm.StringUtil;
 import com.aps.env.communication.NettyServer;
 import com.aps.env.dao.HbDataModeMapper;
 import com.aps.env.dao.HbDataRecordMapper;
+import com.aps.env.dao.HbNodeAlarmMapper;
 import com.aps.env.dao.HbNodeMapper;
 import com.aps.env.entity.*;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -36,6 +37,9 @@ public class ProcessMessage212 implements ProcessMessage {
     private HbDataRecordMapper hbDataRecordMapper;
     @Resource
     private HbDataModeMapper hbDataModeMapper;
+    @Resource
+    private HbNodeAlarmMapper hbNodeAlarmMapper;
+
     private static final Logger LOG = LogManager.getLogger(ProcessMessage212.class);
 
 
@@ -58,7 +62,8 @@ public class ProcessMessage212 implements ProcessMessage {
         String nodeData = message.getMessageBodyTailor();
         String checkMessageError = null;
         String mn = null;
-        int nodeId;
+        int nodeId = 0;
+        final ObjectNode jsonPar = JsonUtil.getObjectNodeInstance();
 
         hbDataMode.setDataGuid(recordId);
         hbDataMode.setProperty0(message.getFromHost());
@@ -89,7 +94,6 @@ public class ProcessMessage212 implements ProcessMessage {
                             item -> format2KeyValue(item)
                                     .ifPresent(
                                             keyValue -> hbDataMode.setDataTime(DateUtil.fromString(keyValue.getValue(), DateUtil.SIMPLE_DATE_FORMAT2))));
-                    final ObjectNode jsonPar = JsonUtil.getObjectNodeInstance();
                     for (String item : dataList.get(1)) {
                         if (item.indexOf(",") > 0) {
                             Arrays.asList(item.split(",")).stream().forEach(
@@ -134,6 +138,13 @@ public class ProcessMessage212 implements ProcessMessage {
         if (null == checkMessageError) {
             hbDataModeMapper.insertSelectiveByNode(hbDataMode);
             LOG.debug(String.format("Processed message successfully from %s,%s", message.getFromHost(), mn));
+
+            // 小时数据异常检查
+            if ("2061".equals(hbDataMode.getDataType())) {
+                if (CommUtil.getNodeTypeItemCacheO().containsKey(nodeId)) {
+                    checkNodeData(nodeId, CommUtil.getNodeNameCache().get(nodeId), mn, jsonPar, hbDataMode.getDataTime(), CommUtil.getNodeTypeItemCacheO().get(nodeId));
+                }
+            }
         } else {
             HbDataRecord hbDataRecord = new HbDataRecord();
 
@@ -173,5 +184,74 @@ public class ProcessMessage212 implements ProcessMessage {
         }
 
         return optional;
+    }
+
+    /**
+     * @param nodeId
+     * @param nodeName
+     * @param nodeMN
+     * @param nodeItemValue
+     * @param valueDate
+     * @param hbTypeItemNodeList
+     */
+    private void checkNodeData(int nodeId, String nodeName, String nodeMN, ObjectNode nodeItemValue, Date valueDate, List<HbTypeItemNode> hbTypeItemNodeList) {
+        Date now = new Date();
+
+        for (HbTypeItemNode hbTypeItemNode : hbTypeItemNodeList) {
+            if (hbTypeItemNode.isSelectMonitorItem() && hbTypeItemNode.isAlarmItem()) {
+                String itemId = String.format("%s%s", hbTypeItemNode.getItemId(), CommUtil.HB_DATA_AVG212);
+                if (nodeItemValue.has(itemId)) {
+                    String itemValueString = nodeItemValue.get(itemId).asText();
+
+                    if (!StringUtil.isNullOrEmpty(itemValueString)) {
+                        String alarm = "";
+                        float itemValueFloat = Float.valueOf(itemValueString);
+
+                        if (null != hbTypeItemNode.getItemVmin()) {
+                            if (Float.valueOf(hbTypeItemNode.getItemVmin().toString()) > itemValueFloat) {
+                                alarm = String.format("下限%s%s", hbTypeItemNode.getItemVmin(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                            }
+                        } else if (null != hbTypeItemNode.getItemVmax()) {
+                            if (Float.valueOf(hbTypeItemNode.getItemVmax().toString()) < itemValueFloat) {
+                                alarm = String.format("上限%s%s", hbTypeItemNode.getItemVmax(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                            }
+                        } else {
+                            if (null != hbTypeItemNode.getItemVala3()) {
+                                if (Float.valueOf(hbTypeItemNode.getItemVala3().toString()) < itemValueFloat) {
+                                    alarm = String.format("三级阀值%s%s", hbTypeItemNode.getItemVala3(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                                }
+                            } else if (null != hbTypeItemNode.getItemVala2()) {
+                                if (Float.valueOf(hbTypeItemNode.getItemVala2().toString()) < itemValueFloat) {
+                                    alarm = String.format("二级阀值%s%s", hbTypeItemNode.getItemVala2(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                                }
+                            } else if (null != hbTypeItemNode.getItemVala1()) {
+                                if (Float.valueOf(hbTypeItemNode.getItemVala1().toString()) < itemValueFloat) {
+                                    alarm = String.format("一级阀值%s%s", hbTypeItemNode.getItemVala1(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                                }
+                            }
+                        }
+                        if (!StringUtil.isNullOrEmpty(alarm)) {
+                            HbNodeAlarm hbNodeAlarm = new HbNodeAlarm();
+
+                            hbNodeAlarm.setGuid(UUID.randomUUID().toString());
+                            hbNodeAlarm.setNodeId(nodeId);
+                            hbNodeAlarm.setNodeMn(nodeMN);
+                            hbNodeAlarm.setNodeName(nodeName);
+                            hbNodeAlarm.setItemCode(hbTypeItemNode.getItemId());
+                            hbNodeAlarm.setItemName(hbTypeItemNode.getItemName());
+                            hbNodeAlarm.setItemValue(itemValueString);
+                            hbNodeAlarm.setItemDate(DateUtil.formatString(valueDate, DateUtil.SIMPLE_DATE_FORMAT1));
+                            hbNodeAlarm.setItemCode(hbTypeItemNode.getItemId());
+                            hbNodeAlarm.setItemName(hbTypeItemNode.getItemName());
+                            hbNodeAlarm.setItemAlarm(alarm);
+                            hbNodeAlarm.setPrflag(0);
+                            hbNodeAlarm.setItime(now);
+
+                            hbNodeAlarmMapper.insertSelective(hbNodeAlarm);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
