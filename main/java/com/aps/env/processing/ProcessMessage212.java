@@ -207,27 +207,17 @@ public class ProcessMessage212 implements ProcessMessage {
                         String alarm = "";
                         float itemValueFloat = Float.valueOf(itemValueString);
 
-                        if (null != hbTypeItemNode.getItemVmin()) {
-                            if (Float.valueOf(hbTypeItemNode.getItemVmin().toString()) > itemValueFloat) {
-                                alarm = String.format("下限%s%s", hbTypeItemNode.getItemVmin(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
-                            }
-                        } else if (null != hbTypeItemNode.getItemVmax()) {
-                            if (Float.valueOf(hbTypeItemNode.getItemVmax().toString()) < itemValueFloat) {
-                                alarm = String.format("上限%s%s", hbTypeItemNode.getItemVmax(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
-                            }
+                        if (null != hbTypeItemNode.getItemVmin() && Float.valueOf(hbTypeItemNode.getItemVmin().toString()) > itemValueFloat) {
+                            alarm = String.format("下限%s%s", hbTypeItemNode.getItemVmin(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                        } else if (null != hbTypeItemNode.getItemVmax() && Float.valueOf(hbTypeItemNode.getItemVmax().toString()) < itemValueFloat) {
+                            alarm = String.format("上限%s%s", hbTypeItemNode.getItemVmax(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
                         } else {
-                            if (null != hbTypeItemNode.getItemVala3()) {
-                                if (Float.valueOf(hbTypeItemNode.getItemVala3().toString()) < itemValueFloat) {
-                                    alarm = String.format("三级阀值%s%s", hbTypeItemNode.getItemVala3(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
-                                }
-                            } else if (null != hbTypeItemNode.getItemVala2()) {
-                                if (Float.valueOf(hbTypeItemNode.getItemVala2().toString()) < itemValueFloat) {
-                                    alarm = String.format("二级阀值%s%s", hbTypeItemNode.getItemVala2(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
-                                }
-                            } else if (null != hbTypeItemNode.getItemVala1()) {
-                                if (Float.valueOf(hbTypeItemNode.getItemVala1().toString()) < itemValueFloat) {
-                                    alarm = String.format("一级阀值%s%s", hbTypeItemNode.getItemVala1(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
-                                }
+                            if (null != hbTypeItemNode.getItemVala3() && Float.valueOf(hbTypeItemNode.getItemVala3().toString()) < itemValueFloat) {
+                                alarm = String.format("三级阀值%s%s", hbTypeItemNode.getItemVala3(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                            } else if (null != hbTypeItemNode.getItemVala2() && Float.valueOf(hbTypeItemNode.getItemVala2().toString()) < itemValueFloat) {
+                                alarm = String.format("二级阀值%s%s", hbTypeItemNode.getItemVala2(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
+                            } else if (null != hbTypeItemNode.getItemVala1() && Float.valueOf(hbTypeItemNode.getItemVala1().toString()) < itemValueFloat) {
+                                alarm = String.format("一级阀值%s%s", hbTypeItemNode.getItemVala1(), null != hbTypeItemNode.getItemUnit() ? hbTypeItemNode.getItemUnit() : "");
                             }
                         }
                         if (!StringUtil.isNullOrEmpty(alarm)) {
@@ -241,8 +231,6 @@ public class ProcessMessage212 implements ProcessMessage {
                             hbNodeAlarm.setItemName(hbTypeItemNode.getItemName());
                             hbNodeAlarm.setItemValue(itemValueString);
                             hbNodeAlarm.setItemDate(DateUtil.formatString(valueDate, DateUtil.SIMPLE_DATE_FORMAT1));
-                            hbNodeAlarm.setItemCode(hbTypeItemNode.getItemId());
-                            hbNodeAlarm.setItemName(hbTypeItemNode.getItemName());
                             hbNodeAlarm.setItemAlarm(alarm);
                             hbNodeAlarm.setPrflag(0);
                             hbNodeAlarm.setItime(now);
