@@ -11,35 +11,43 @@
 		</Console>
 		<RollingFile name="c3p0" fileName="${LOG_HOME}/c3p0/c3p0.log" filePattern="${LOG_HOME}/c3p0/$${date:yyyy-MM}/c3p0-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="mybatis" fileName="${LOG_HOME}/mybatis/mybatis.log" filePattern="${LOG_HOME}/mybatis/$${date:yyyy-MM}/mybatis-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="service" fileName="${LOG_HOME}/service/service.log" filePattern="${LOG_HOME}/service/$${date:yyyy-MM}/service-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="controller" fileName="${LOG_HOME}/controller/controller.log" filePattern="${LOG_HOME}/controller/$${date:yyyy-MM}/controller-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="communication" fileName="${LOG_HOME}/communication/communication.log" filePattern="${LOG_HOME}/communication/$${date:yyyy-MM}/communication-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="schedule" fileName="${LOG_HOME}/schedule/schedule.log" filePattern="${LOG_HOME}/schedule/$${date:yyyy-MM}/schedule-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="processMessage212" fileName="${LOG_HOME}/processMessage212/processMessage212.log" filePattern="${LOG_HOME}/processMessage212/$${date:yyyy-MM}/processMessage212-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 		<RollingFile name="test" fileName="${LOG_HOME}/test/test.log" filePattern="${LOG_HOME}/test/$${date:yyyy-MM}/test-%d{MM-dd-yyyy}-%i.log.gz">
 			<PatternLayout pattern="${PATTENR}"/>
-			<SizeBasedTriggeringPolicy size="2 MB"/>
+			<SizeBasedTriggeringPolicy size="5 M"/>
+			<DefaultRolloverStrategy max="100"/>
 		</RollingFile>
 	</appenders>
 	<loggers>
