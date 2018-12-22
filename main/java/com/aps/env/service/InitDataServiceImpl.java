@@ -2,6 +2,7 @@ package com.aps.env.service;
 
 import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.JsonUtil;
+import com.aps.env.communication.NettyServer;
 import com.aps.env.dao.HbDataLatestMapper;
 import com.aps.env.dao.HbNodeMapper;
 import com.aps.env.entity.HbDataLatestExample;
@@ -45,6 +46,17 @@ public class InitDataServiceImpl implements InitDataService {
         hbNodeExample.createCriteria().andDeleteFlagEqualTo(0);
         hbNodeMapper.selectByExample(hbNodeExample).stream().forEach(node -> putHbNode(node));
         LOG.info("Completing initializes HBNODE information!");
+
+        NettyServer.getManagedConnections().forEach((id, connection) -> {
+            final List<Integer> removeNodeIds = new ArrayList<>();
+            connection.getNode().forEach((nodeId, nodeMn) -> {
+                if (!CommUtil.getHbNodeCache().containsKey(nodeMn)) {
+                    removeNodeIds.add(nodeId);
+                }
+            });
+            removeNodeIds.forEach(nodeId -> connection.removeNode(nodeId));
+        });
+
     }
 
     @Override
@@ -105,6 +117,4 @@ public class InitDataServiceImpl implements InitDataService {
             LOG.info("Completing reload HB_NODE_TYPE_ITEM information!");
         }
     }
-
-
 }

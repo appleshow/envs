@@ -57,16 +57,18 @@ public class ProcessMessage212 implements ProcessMessage {
      */
     private void insertMessage(Message message) {
         final HbDataMode hbDataMode = new HbDataMode();
-        Date nowDate = new Date();
-        String recordId = UUID.randomUUID().toString();
-        String nodeData = message.getMessageBodyTailor();
+        final Date nowDate = new Date();
+        final String recordId = UUID.randomUUID().toString();
+        final String nodeData = message.getMessageBodyTailor();
+        final ObjectNode jsonPar = JsonUtil.getObjectNodeInstance();
+
         String checkMessageError = null;
         String mn = null;
         int nodeId = 0;
-        final ObjectNode jsonPar = JsonUtil.getObjectNodeInstance();
+
 
         hbDataMode.setDataGuid(recordId);
-        hbDataMode.setProperty0(message.getFromHost());
+        hbDataMode.setProperty0(String.format("%s @ %s", message.getFromHost(), message.getReceiveDate()));
         if (nodeData.length() > 2 && nodeData.startsWith("##") && nodeData.indexOf("&&") > 0 && nodeData.indexOf("DataTime=") > 0) {
             List<String[]> dataList = Arrays.asList(nodeData.split("&&")).stream().map(item -> item.split(";")).collect(Collectors.toList());
             if (dataList.size() >= 2) {
@@ -75,18 +77,24 @@ public class ProcessMessage212 implements ProcessMessage {
                         item -> format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setNodeMn(keyValue.getValue())));
                 if (CommUtil.getHbNodeCache().containsKey(hbDataMode.getNodeMn())) {
                     mn = hbDataMode.getNodeMn();
-                    nodeId = CommUtil.getHbNodeCache().get(hbDataMode.getNodeMn());
-                    if (!NettyServer.getManagedNode().containsKey(mn)) {
-                        HbNode hbNode = new HbNode();
-                        hbNode.setNodeId(nodeId);
-                        hbNode.setPrflag(1);
-                        hbNode.setUtime(new Date());
+                    nodeId = CommUtil.getHbNodeCache().get(mn);
 
-                        hbNodeMapper.updateByPrimaryKeySelective(hbNode);
-                    }
-                    NettyServer.addManagedNode(mn, message.getChannelId());
+                    NettyServer.findManagedConnection(message.getId()).ifPresent(connection -> {
+                                String thisNodeMn = hbDataMode.getNodeMn();
+                                int thisNodeId = CommUtil.getHbNodeCache().get(thisNodeMn);
+
+                                if (!connection.hasNodeId(thisNodeId)) {
+                                    HbNode hbNode = new HbNode();
+                                    hbNode.setNodeId(thisNodeId);
+                                    hbNode.setPrflag(1);
+                                    hbNode.setUtime(nowDate);
+                                    hbNodeMapper.updateByPrimaryKeySelective(hbNode);
+                                }
+                                connection.addNode(thisNodeId, thisNodeMn);
+                            }
+                    );
+
                     hbDataMode.setNodeMn(String.valueOf(nodeId));
-
                     Arrays.asList(dataList.get(0)).stream().filter(
                             item -> item.startsWith("CN=")).findFirst().ifPresent(
                             item -> format2KeyValue(item).ifPresent(keyValue -> hbDataMode.setDataType(keyValue.getValue())));

@@ -21,13 +21,21 @@ public class Message implements Serializable {
      */
     private static final long serialVersionUID = -7044588105720013576L;
     private int tryTimes;
+    private String id;
     private String messageBody;
     private String receiveDate;
     private String fromHost;
     private String lastTryDate;
-    private String channelId;
 
     public Message() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
@@ -84,7 +92,7 @@ public class Message implements Serializable {
     }
 
     /**
-     * @Title: getFromHost
+     * @Title: getId
      * @Description:
      * @return: String
      * @since 1.0.0
@@ -95,7 +103,7 @@ public class Message implements Serializable {
     }
 
     /**
-     * @Title: setFromHost
+     * @Title: setId
      * @Description:
      * @return: String
      * @since 1.0.0
@@ -154,20 +162,6 @@ public class Message implements Serializable {
      */
     public void setLastTryDateDefault() {
         lastTryDate = DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1);
-    }
-
-    /**
-     * @return
-     */
-    public String getChannelId() {
-        return channelId;
-    }
-
-    /**
-     * @param channelId
-     */
-    public void setChannelId(String channelId) {
-        this.channelId = channelId;
     }
 
     /**

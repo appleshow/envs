@@ -45,14 +45,15 @@ public class SchedulePullData {
         final Collection<Message> cacheData = new ArrayList<>();
         final CacheOperation cacheOperation = new CacheOperation();
 
-        if (!NettyServer.getOfflineClient().isEmpty()) {
-            NettyServer.getOfflineClient().stream().forEach(k -> {
+        if (!NettyServer.getOfflineNode().isEmpty()) {
+            NettyServer.getOfflineNode().stream().forEach(k -> {
                 HbNode hbNode = new HbNode();
                 hbNode.setNodeId(k);
                 hbNode.setPrflag(0);
                 hbNode.setUtime(new Date());
 
                 hbNodeMapper.updateByPrimaryKeySelective(hbNode);
+                LOG.info(String.format("Node [id:%d] Offline.", k));
             });
 
             NettyServer.clearOfflineClient();
@@ -77,7 +78,7 @@ public class SchedulePullData {
         }
         if (cacheOperation.getFailed() > 0) {
             LOG.info(String.format("Loaded data from cache. Total: %d; Success: %d; Failed: %d.", cacheOperation.getTotal(), cacheOperation.getSuccess(),
-                                   cacheOperation.getFailed()));
+                    cacheOperation.getFailed()));
         } else {
             LOG.info("Loaded data from cache successfully!");
         }

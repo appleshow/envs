@@ -4,6 +4,7 @@ import com.aps.env.comm.CommUtil;
 import com.aps.env.communication.Cache;
 import com.aps.env.communication.NettyServer;
 import com.aps.env.entity.HbTypeItemNode;
+import com.aps.env.entity.ManagedConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,29 +42,11 @@ public class CommController extends ExceptionController {
      * @return
      */
     @RequestMapping(value = "getOnlineClient", method = RequestMethod.GET)
-    public List<String> getOnlineClient(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public Map<String, ManagedConnection> getOnlineClient(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         LOG.info(String.format("Call getOnlineClient from: %s", httpServletRequest.getRemoteAddr()));
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
 
-        final Map<String, String> onlineClient = NettyServer.getManagedConnections();
-        final Map<String, String> mapClient = new HashMap<>();
-        final List<String> returnClient = new ArrayList<>();
-
-        onlineClient.forEach((k, v) -> {
-            final String[] client = v.split(",");
-
-            mapClient.put(k, v);
-            NettyServer.getManagedNode().forEach((kn, vn) -> {
-                if (client[1].equals(vn)) {
-                    mapClient.put(k, String.format("%s,[%s]", mapClient.get(k), kn));
-                }
-            });
-        });
-
-        mapClient.forEach(
-                (k, v) -> returnClient.add(v));
-
-        return returnClient;
+        return NettyServer.getManagedConnections();
     }
 
     /**

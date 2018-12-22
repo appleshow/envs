@@ -213,16 +213,6 @@ public class CommUtil {
     }
 
     /**
-     * @param address
-     * @return
-     */
-    public static String formatHost(String address, String channelId) {
-        String nowString = DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1);
-
-        return StringUtil.isNullOrEmpty(channelId) ? String.format("Host: %s,%s,[%s]", address, "", nowString) : String.format("Host: %s,%s,[%s]", address, channelId, nowString);
-    }
-
-    /**
      * @param e
      * @return String
      * @Title: getMessageFromException

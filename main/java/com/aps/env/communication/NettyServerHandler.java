@@ -2,6 +2,8 @@ package com.aps.env.communication;
 
 import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.DateUtil;
+import com.aps.env.comm.StringUtil;
+import com.aps.env.entity.ManagedConnection;
 import com.aps.env.entity.Message;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -33,10 +35,11 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRegistered(ChannelHandlerContext channelHandlerContext) throws Exception {
         super.channelRegistered(channelHandlerContext);
 
-        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        final String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        final String id = channelHandlerContext.channel().id().asShortText();
         NettyServer.getConnectNumber().incrementAndGet();
-        NettyServer.inputChannelAddress(remoteAddress, channelHandlerContext.channel().id().asLongText());
-        LOG.info(String.format("Session has been opened: %s", CommUtil.formatHost(remoteAddress, null)));
+        NettyServer.NewConnection(id, new ManagedConnection(id));
+        LOG.info(String.format("Session has been opened: %s", remoteAddress));
     }
 
     /**
@@ -48,10 +51,11 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelUnregistered(ChannelHandlerContext channelHandlerContext) throws Exception {
         super.channelUnregistered(channelHandlerContext);
 
-        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        final String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        final String id = channelHandlerContext.channel().id().asShortText();
         NettyServer.getConnectNumber().decrementAndGet();
-        NettyServer.removeChannelAddress(remoteAddress, channelHandlerContext.channel().id().asLongText());
-        LOG.info(String.format("Session has been closed: %s", CommUtil.formatHost(remoteAddress, null)));
+        NettyServer.removeConnection(id);
+        LOG.info(String.format("Session has been closed: %s", null == remoteAddress ? id : remoteAddress));
     }
 
     /**
@@ -61,16 +65,20 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) {
-        String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        final String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
+        final String id = channelHandlerContext.channel().id().asShortText();
 
-        Message message = new Message();
+        final Message message = new Message();
+        message.setId(id);
         message.setMessageBody(String.valueOf(msg));
         message.setReceiveDate(DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1));
-        message.setFromHost(CommUtil.formatHost(remoteAddress, null));
+        message.setFromHost(remoteAddress);
         message.increaseTryTimes();
-        message.setChannelId(channelHandlerContext.channel().id().asLongText());
+
+        NettyServer.findManagedConnection(id).ifPresent(connection -> connection.setActiveAt(message.getReceiveDate()));
 
         Cache.offer(message);
+
         LOG.debug("Received [" + message.getFromHost() + "] -> " + msg);
     }
 
@@ -83,6 +91,12 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable throwable) {
         // 当出现异常就关闭连接
         LOG.error(throwable);
+
+        final String id = channelHandlerContext.channel().id().asShortText();
+        if (!StringUtil.isNullOrEmpty(id)) {
+            NettyServer.removeConnection(id);
+        }
+
         channelHandlerContext.close();
     }
 }

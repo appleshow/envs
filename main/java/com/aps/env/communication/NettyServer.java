@@ -1,8 +1,7 @@
 package com.aps.env.communication;
 
-import com.aps.env.comm.CommUtil;
 import com.aps.env.comm.DateUtil;
-import com.aps.env.comm.StringUtil;
+import com.aps.env.entity.ManagedConnection;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -41,14 +40,12 @@ public class NettyServer {
     private static String restartFrom = null;
     private static AtomicInteger connectNumber;
     private static final Vector<String> SERVER_START_TIME;
-    private static final ConcurrentHashMap<String, String> MANAGED_CONNECTIONS;
-    private static final Vector<Integer> OFFLINE_CLIENT;
-    private static final Map<String, String> MANAGED_NODE;
+    private static final ConcurrentHashMap<String, ManagedConnection> MANAGED_CONNECTIONS;
+    private static final Vector<Integer> OFFLINE_NODE;
 
     static {
         SERVER_START_TIME = new Vector<>();
-        OFFLINE_CLIENT = new Vector<>();
-        MANAGED_NODE = new HashMap<>();
+        OFFLINE_NODE = new Vector<>();
         MANAGED_CONNECTIONS = new ConcurrentHashMap();
         connectNumber = new AtomicInteger(0);
     }
@@ -135,65 +132,51 @@ public class NettyServer {
         return connectNumber;
     }
 
-    /**
-     * @param address
-     * @param channelId
-     */
-    public static void inputChannelAddress(String address, String channelId) {
-        MANAGED_CONNECTIONS.put(address, CommUtil.formatHost(address, channelId));
+    public static Optional<ManagedConnection> findManagedConnection(String id) {
+        if (MANAGED_CONNECTIONS.containsKey(id)) {
+            return Optional.ofNullable(MANAGED_CONNECTIONS.get(id));
+        } else {
+            return Optional.ofNullable(null);
+        }
     }
 
     /**
-     * @param address
-     * @param channelId
+     * @param id
+     * @param managedConnection
      */
-    public static void removeChannelAddress(String address, String channelId) {
-        MANAGED_CONNECTIONS.remove(address);
-        MANAGED_NODE.forEach((k, v) -> {
-            if (channelId.equals(v) && CommUtil.getHbNodeCache().containsKey(k)) {
-                OFFLINE_CLIENT.add(CommUtil.getHbNodeCache().get(k));
-            }
-        });
+    public static void NewConnection(String id, ManagedConnection managedConnection) {
+        MANAGED_CONNECTIONS.put(id, managedConnection);
+    }
+
+    /**
+     * @param id
+     */
+    public static void removeConnection(String id) {
+        if (MANAGED_CONNECTIONS.containsKey(id)) {
+            MANAGED_CONNECTIONS.get(id).getNode().forEach((nodeId, nodeMn) -> OFFLINE_NODE.add(nodeId));
+            MANAGED_CONNECTIONS.remove(id);
+        }
+    }
+
+    public static void addOfflineNode(int nodeId) {
+        OFFLINE_NODE.add(nodeId);
     }
 
     /**
      * @return
      */
-    public static ConcurrentHashMap<String, String> getManagedConnections() {
+    public static ConcurrentHashMap<String, ManagedConnection> getManagedConnections() {
         return MANAGED_CONNECTIONS;
     }
 
     /**
-     * @param nodeId
-     * @param channelId
-     */
-    public static void addManagedNode(String nodeId, String channelId) {
-        MANAGED_NODE.put(nodeId, channelId);
-    }
-
-    /**
      * @return
      */
-    public static Map<String, String> getManagedNode() {
-        return MANAGED_NODE;
-    }
-
-    /**
-     * @return
-     */
-    public static List<Integer> getOfflineClient() {
-        return OFFLINE_CLIENT;
+    public static List<Integer> getOfflineNode() {
+        return OFFLINE_NODE;
     }
 
     public static void clearOfflineClient() {
-        OFFLINE_CLIENT.stream().forEach(
-                k -> CommUtil.getHbNodeCache().forEach(
-                        (mn, nodeId) -> {
-                            if (k == nodeId) {
-                                MANAGED_NODE.remove(mn);
-                            }
-                        }));
-
-        OFFLINE_CLIENT.clear();
+        OFFLINE_NODE.clear();
     }
 }
