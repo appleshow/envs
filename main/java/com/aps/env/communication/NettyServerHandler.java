@@ -38,7 +38,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         final String remoteAddress = channelHandlerContext.channel().remoteAddress().toString();
         final String id = channelHandlerContext.channel().id().asShortText();
         NettyServer.getConnectNumber().incrementAndGet();
-        NettyServer.NewConnection(id, new ManagedConnection(id));
+        NettyServer.NewConnection(id, new ManagedConnection(id, remoteAddress));
         LOG.info(String.format("Session has been opened: %s", remoteAddress));
     }
 

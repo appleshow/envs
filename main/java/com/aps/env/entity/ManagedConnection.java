@@ -10,11 +10,13 @@ import java.util.*;
 public class ManagedConnection {
     private String id;
     private Map<Integer, String> node;
+    private String host;
     private String startAt;
     private String activeAt;
 
-    public ManagedConnection(String id) {
+    public ManagedConnection(String id, String host) {
         this.id = id;
+        this.host = host;
         this.node = new HashMap<>();
         this.startAt = DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1);
     }
@@ -48,6 +50,14 @@ public class ManagedConnection {
 
     public Map<Integer, String> getNode() {
         return this.node;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     public String getStartAt() {
