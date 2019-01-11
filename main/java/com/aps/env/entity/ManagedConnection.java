@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class ManagedConnection {
     private String id;
-    private Map<Integer, String> node;
+    private Map<Integer, ManagedNode> managedNodeMap;
     private String host;
     private String startAt;
     private String activeAt;
@@ -17,20 +17,20 @@ public class ManagedConnection {
     public ManagedConnection(String id, String host) {
         this.id = id;
         this.host = host;
-        this.node = new HashMap<>();
+        this.managedNodeMap = new HashMap<>();
         this.startAt = DateUtil.formatString(new Date(), DateUtil.SIMPLE_DATE_FORMAT1);
     }
 
     public boolean hasNodeId(int nodeId) {
-        return this.node.containsKey(nodeId);
+        return this.managedNodeMap.containsKey(nodeId);
     }
 
     public String getNodeMn(int nodeId) {
-        return this.node.get(nodeId);
+        return this.managedNodeMap.get(nodeId).getNodeMn();
     }
 
     public ManagedConnection removeNode(int nodeId) {
-        this.node.remove(nodeId);
+        this.managedNodeMap.remove(nodeId);
         return this;
     }
 
@@ -43,13 +43,13 @@ public class ManagedConnection {
         return this;
     }
 
-    public ManagedConnection addNode(int nodeId, String nodeMn) {
-        this.node.put(nodeId, nodeMn);
+    public ManagedConnection addManagedNode(ManagedNode managedNode) {
+        this.managedNodeMap.put(managedNode.getNodeId(), managedNode);
         return this;
     }
 
-    public Map<Integer, String> getNode() {
-        return this.node;
+    public Map<Integer, ManagedNode> getManagedNodeMap() {
+        return this.managedNodeMap;
     }
 
     public String getHost() {

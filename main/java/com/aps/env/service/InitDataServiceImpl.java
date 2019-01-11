@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <dl>
@@ -42,21 +39,41 @@ public class InitDataServiceImpl implements InitDataService {
 
     @Override
     public void initHbNode() {
-        HbNodeExample hbNodeExample = new HbNodeExample();
+        final Date dateNow = new Date();
+        final Map<Integer, Integer> nodeStateNowMap = new HashMap<>();
+        final Map<Integer, Integer> nodeStateOldMap = new HashMap<>();
+        final Map<Integer, Integer> nodeOffline = new HashMap<>();
+        final HbNodeExample hbNodeExample = new HbNodeExample();
+
         hbNodeExample.createCriteria().andDeleteFlagEqualTo(0);
-        hbNodeMapper.selectByExample(hbNodeExample).stream().forEach(node -> putHbNode(node));
+        hbNodeMapper.selectByExample(hbNodeExample).stream().forEach(node -> {
+            nodeStateNowMap.put(node.getNodeId(), 0);
+            nodeStateOldMap.put(node.getNodeId(), 0);
+            nodeOffline.put(node.getNodeId(), null == node.getNodeOfflineTarget() ? 3 : node.getNodeOfflineTarget());
+            putHbNode(node);
+        });
         LOG.info("Completing initializes HBNODE information!");
 
         NettyServer.getManagedConnections().forEach((id, connection) -> {
-            final List<Integer> removeNodeIds = new ArrayList<>();
-            connection.getNode().forEach((nodeId, nodeMn) -> {
-                if (!CommUtil.getHbNodeCache().containsKey(nodeMn)) {
-                    removeNodeIds.add(nodeId);
+            connection.getManagedNodeMap().values().stream().forEach(managedNode -> {
+                if (nodeStateNowMap.containsKey(managedNode.getNodeId())) {
+                    if (null != managedNode.getActiveAt() && ((dateNow.getTime() - managedNode.getActiveAt().getTime()) / (1000 * 60)) <= nodeOffline.get(managedNode.getNodeId())) {
+                        nodeStateNowMap.put(managedNode.getNodeId(), 1);
+                    }
                 }
             });
-            removeNodeIds.forEach(nodeId -> connection.removeNode(nodeId));
         });
 
+        nodeStateNowMap.forEach((nodeId, state) -> {
+            if (state != nodeStateOldMap.get(nodeId)) {
+                HbNode hbNode = new HbNode();
+                hbNode.setNodeId(nodeId);
+                hbNode.setPrflag(state);
+                hbNode.setUtime(dateNow);
+
+                hbNodeMapper.updateByPrimaryKeySelective(hbNode);
+            }
+        });
     }
 
     @Override

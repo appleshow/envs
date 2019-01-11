@@ -82,15 +82,21 @@ public class ProcessMessage212 implements ProcessMessage {
                     NettyServer.findManagedConnection(message.getId()).ifPresent(connection -> {
                                 String thisNodeMn = hbDataMode.getNodeMn();
                                 int thisNodeId = CommUtil.getHbNodeCache().get(thisNodeMn);
+                                String thisNodeName = CommUtil.getNodeNameCache().get(thisNodeId);
 
-                                if (!connection.hasNodeId(thisNodeId)) {
-                                    HbNode hbNode = new HbNode();
-                                    hbNode.setNodeId(thisNodeId);
-                                    hbNode.setPrflag(1);
-                                    hbNode.setUtime(nowDate);
-                                    hbNodeMapper.updateByPrimaryKeySelective(hbNode);
+                                if (connection.getManagedNodeMap().containsKey(thisNodeId)) {
+                                    connection.getManagedNodeMap().get(thisNodeId).setNodeName(thisNodeName);
+                                    connection.getManagedNodeMap().get(thisNodeId).setNodeMn(thisNodeMn);
+                                    connection.getManagedNodeMap().get(thisNodeId).setActiveAt(nowDate);
+                                } else {
+                                    ManagedNode managedNode = new ManagedNode();
+                                    managedNode.setNodeId(thisNodeId);
+                                    managedNode.setNodeMn(thisNodeMn);
+                                    managedNode.setNodeName(thisNodeName);
+                                    managedNode.setActiveAt(nowDate);
+
+                                    connection.addManagedNode(managedNode);
                                 }
-                                connection.addNode(thisNodeId, thisNodeMn);
                             }
                     );
 

@@ -41,11 +41,9 @@ public class NettyServer {
     private static AtomicInteger connectNumber;
     private static final Vector<String> SERVER_START_TIME;
     private static final ConcurrentHashMap<String, ManagedConnection> MANAGED_CONNECTIONS;
-    private static final Vector<Integer> OFFLINE_NODE;
 
     static {
         SERVER_START_TIME = new Vector<>();
-        OFFLINE_NODE = new Vector<>();
         MANAGED_CONNECTIONS = new ConcurrentHashMap();
         connectNumber = new AtomicInteger(0);
     }
@@ -152,14 +150,7 @@ public class NettyServer {
      * @param id
      */
     public static void removeConnection(String id) {
-        if (MANAGED_CONNECTIONS.containsKey(id)) {
-            MANAGED_CONNECTIONS.get(id).getNode().forEach((nodeId, nodeMn) -> OFFLINE_NODE.add(nodeId));
-            MANAGED_CONNECTIONS.remove(id);
-        }
-    }
-
-    public static void addOfflineNode(int nodeId) {
-        OFFLINE_NODE.add(nodeId);
+        MANAGED_CONNECTIONS.remove(id);
     }
 
     /**
@@ -167,16 +158,5 @@ public class NettyServer {
      */
     public static ConcurrentHashMap<String, ManagedConnection> getManagedConnections() {
         return MANAGED_CONNECTIONS;
-    }
-
-    /**
-     * @return
-     */
-    public static List<Integer> getOfflineNode() {
-        return OFFLINE_NODE;
-    }
-
-    public static void clearOfflineClient() {
-        OFFLINE_NODE.clear();
     }
 }

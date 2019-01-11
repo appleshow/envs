@@ -45,19 +45,6 @@ public class SchedulePullData {
         final Collection<Message> cacheData = new ArrayList<>();
         final CacheOperation cacheOperation = new CacheOperation();
 
-        if (!NettyServer.getOfflineNode().isEmpty()) {
-            NettyServer.getOfflineNode().stream().forEach(k -> {
-                HbNode hbNode = new HbNode();
-                hbNode.setNodeId(k);
-                hbNode.setPrflag(0);
-                hbNode.setUtime(new Date());
-
-                hbNodeMapper.updateByPrimaryKeySelective(hbNode);
-                LOG.info(String.format("Node [id:%d] Offline.", k));
-            });
-
-            NettyServer.clearOfflineClient();
-        }
         if (!Cache.isEmpty()) {
             Cache.drainTo(cacheData);
             cacheData.stream().forEach(message -> {
