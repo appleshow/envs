@@ -75,7 +75,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         message.setFromHost(remoteAddress);
         message.increaseTryTimes();
 
-        NettyServer.findManagedConnection(id).ifPresent(connection -> connection.setActiveAt(message.getReceiveDate()));
+        NettyServer.findManagedConnection(id).ifPresent(connection -> {
+            connection.setActiveAt(message.getReceiveDate());
+            connection.setActivityData(message.getMessageBody());
+        });
 
         Cache.offer(message);
 

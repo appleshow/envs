@@ -36,6 +36,20 @@ public class CommController extends ExceptionController {
     @Autowired
     private Environment environment;
 
+    @RequestMapping(value = "help", method = RequestMethod.GET)
+    public List<String> getHelp(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        return new ArrayList<String>() {{
+            add("getOnlineClient");
+            add("getConnectionNumber");
+            add("getCacheSize");
+            add("getServerStartTime");
+            add("getCachedHbNodeMN");
+            add("getCachedHbNodeName");
+            add("getCachedHbNodeItemS");
+            add("getCachedHbNodeItemO");
+        }};
+    }
+
     /**
      * @param httpServletRequest
      * @param httpServletResponse

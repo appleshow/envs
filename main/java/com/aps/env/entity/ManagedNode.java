@@ -14,6 +14,7 @@ public class ManagedNode {
     private String nodeName;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date activeAt;
+    private String activeData;
 
     public int getNodeId() {
         return nodeId;
@@ -46,5 +47,13 @@ public class ManagedNode {
 
     public void setActiveAt(Date activeAt) {
         this.activeAt = activeAt;
+    }
+
+    public String getActiveData() {
+        return activeData;
+    }
+
+    public void setActiveData(String activeData) {
+        this.activeData = activeData;
     }
 }

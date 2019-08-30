@@ -88,12 +88,14 @@ public class ProcessMessage212 implements ProcessMessage {
                                     connection.getManagedNodeMap().get(thisNodeId).setNodeName(thisNodeName);
                                     connection.getManagedNodeMap().get(thisNodeId).setNodeMn(thisNodeMn);
                                     connection.getManagedNodeMap().get(thisNodeId).setActiveAt(nowDate);
+                                    connection.getManagedNodeMap().get(thisNodeId).setActiveData(message.getMessageBody());
                                 } else {
                                     ManagedNode managedNode = new ManagedNode();
                                     managedNode.setNodeId(thisNodeId);
                                     managedNode.setNodeMn(thisNodeMn);
                                     managedNode.setNodeName(thisNodeName);
                                     managedNode.setActiveAt(nowDate);
+                                    managedNode.setActiveData(message.getMessageBody());
 
                                     connection.addManagedNode(managedNode);
                                 }

@@ -48,8 +48,8 @@ public class InitDataServiceImpl implements InitDataService {
         hbNodeExample.createCriteria().andDeleteFlagEqualTo(0);
         hbNodeMapper.selectByExample(hbNodeExample).stream().forEach(node -> {
             nodeStateNowMap.put(node.getNodeId(), 0);
-            nodeStateOldMap.put(node.getNodeId(), 0);
-            nodeOffline.put(node.getNodeId(), null == node.getNodeOfflineTarget() ? 3 : node.getNodeOfflineTarget());
+            nodeStateOldMap.put(node.getNodeId(), node.getPrflag());
+            nodeOffline.put(node.getNodeId(), null == node.getNodeOfflineTarget() ? 10 : node.getNodeOfflineTarget());
             putHbNode(node);
         });
         LOG.info("Completing initializes HBNODE information!");

@@ -13,6 +13,7 @@ public class ManagedConnection {
     private String host;
     private String startAt;
     private String activeAt;
+    private String activityData;
 
     public ManagedConnection(String id, String host) {
         this.id = id;
@@ -71,5 +72,13 @@ public class ManagedConnection {
     public ManagedConnection setActiveAt(String activeAt) {
         this.activeAt = activeAt;
         return this;
+    }
+
+    public String getActivityData() {
+        return activityData;
+    }
+
+    public void setActivityData(String activityData) {
+        this.activityData = activityData;
     }
 }
